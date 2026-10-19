@@ -1,0 +1,52 @@
+{
+  "name": "grafic-cm-studio",
+  "version": "2.0.0",
+  "description": "Studio desktop para criar, testar e empacotar apps Electron (.exe e .deb) facilmente",
+  "type": "module",
+  "main": "main.js",
+  "homepage": "https://graficcm.dev",
+  "author": {
+    "name": "Caio Multiversando",
+    "email": "contato@graficcm.dev"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux deb --x64"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.graficcm.studio",
+    "productName": "Grafic-CM Studio",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!dist/*"
+    ],
+    "asarUnpack": [
+      "node_modules/electron-builder/**/*",
+      "node_modules/app-builder-lib/**/*",
+      "node_modules/builder-util/**/*"
+    ],
+    "win": {
+      "icon": "icon.ico"
+    },
+    "linux": {
+      "target": ["deb"],
+      "icon": "build/icons",
+      "maintainer": "Caio Multiversando <contato@graficcm.dev>"
+    }
+  },
+  "keywords": ["electron", "window", "grafic", "builder"],
+  "license": "MIT"
+}

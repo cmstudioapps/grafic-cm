@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grafic-CM Docs</title>
+    <style>
+      :root {
+        --bg: #f5efe3;
+        --bg-accent: #efe1c4;
+        --surface: rgba(255, 252, 245, 0.88);
+        --surface-strong: #fffaf0;
+        --text: #1f1d1a;
+        --muted: #665f55;
+        --primary: #b24c2b;
+        --primary-strong: #7f2f17;
+        --border: rgba(125, 87, 55, 0.18);
+        --code-bg: #201d19;
+        --code-text: #f8f4ec;
+        --shadow: 0 20px 50px rgba(72, 41, 20, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Noto Sans", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 214, 153, 0.45), transparent 32%),
+          radial-gradient(circle at top right, rgba(218, 119, 74, 0.2), transparent 28%),
+          linear-gradient(180deg, var(--bg) 0%, #f8f4ea 100%);
+      }
+
+      a {
+        color: var(--primary-strong);
+      }
+
+      .layout {
+        width: min(1160px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 64px 0 36px;
+      }
+
+      .hero-card {
+        background: linear-gradient(135deg, rgba(255, 249, 239, 0.96), rgba(250, 240, 223, 0.9));
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        inset: auto -70px -70px auto;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(178, 76, 43, 0.2), transparent 70%);
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(178, 76, 43, 0.08);
+        color: var(--primary-strong);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.08;
+      }
+
+      h1 {
+        margin-top: 16px;
+        font-size: clamp(2.6rem, 6vw, 4.9rem);
+        max-width: 10ch;
+      }
+
+      .hero p {
+        max-width: 64ch;
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+
+      .button-primary {
+        background: var(--primary);
+        color: #fff7f2;
+      }
+
+      .button-secondary {
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .hero-grid,
+      .section-grid,
+      .cards {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: 28px;
+      }
+
+      .stat,
+      .card,
+      .callout,
+      .toc,
+      .code-block {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .stat,
+      .card,
+      .callout,
+      .toc {
+        padding: 22px;
+      }
+
+      .stat strong,
+      .card strong {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+      }
+
+      .section {
+        padding: 26px 0;
+      }
+
+      .section-header {
+        margin-bottom: 18px;
+      }
+
+      .section-header h2 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+      }
+
+      .section-header p {
+        max-width: 70ch;
+        color: var(--muted);
+      }
+
+      .section-grid {
+        grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+        align-items: start;
+      }
+
+      .toc ul,
+      .checklist,
+      .steps,
+      .faq,
+      .notes {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .toc li,
+      .faq li,
+      .notes li {
+        margin: 10px 0;
+      }
+
+      .cards {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .code-block {
+        overflow: hidden;
+      }
+
+      .code-block header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        color: #f0dfd1;
+        background: #2f2822;
+      }
+
+      pre {
+        margin: 0;
+        padding: 18px;
+        overflow-x: auto;
+        background: var(--code-bg);
+        color: var(--code-text);
+        font-size: 0.95rem;
+        line-height: 1.55;
+      }
+
+      code {
+        font-family: "Cascadia Code", "Fira Code", monospace;
+      }
+
+      .inline-code {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(178, 76, 43, 0.08);
+        color: var(--primary-strong);
+        font-size: 0.95em;
+      }
+
+      .callout {
+        background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(248, 240, 226, 0.98));
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      th,
+      td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: rgba(178, 76, 43, 0.08);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      footer {
+        padding: 34px 0 56px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 860px) {
+        .section-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-card {
+          padding: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="layout">
+        <div class="hero-card">
+          <span class="eyebrow">Documentacao oficial</span>
+          <h1>Grafic-CM</h1>
+          <p>
+            Guia completo para criar janelas Electron com a biblioteca
+            <span class="inline-code">grafic-cm</span>, usar a API em ESM e
+            empacotar seu app com comandos simples como
+            <span class="inline-code">grafic-cm empacotar --win</span>.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#primeiros-passos">Comecar</a>
+            <a class="button button-secondary" href="#cli">Ver CLI</a>
+          </div>
+          <div class="hero-grid">
+            <article class="stat">
+              <strong>API simples</strong>
+              <span>Abra uma janela com poucos campos como tamanho, icone e HTML.</span>
+            </article>
+            <article class="stat">
+              <strong>CLI integrada</strong>
+              <span>Empacote com o mesmo pacote usando Linux, Windows ou macOS.</span>
+            </article>
+            <article class="stat">
+              <strong>Compatibilidade ESM</strong>
+              <span>Importe com <span class="inline-code">import</span> em projetos modernos.</span>
+            </article>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="section" id="sumario">
+        <div class="section-grid">
+          <div class="toc">
+            <strong>O que voce vai aprender</strong>
+            <ul>
+              <li><a href="#primeiros-passos">Como instalar e preparar o projeto</a></li>
+              <li><a href="#uso-basico">Como abrir a primeira janela</a></li>
+              <li><a href="#api">Quais opcoes a funcao <code>janela()</code> aceita</a></li>
+              <li><a href="#icone">Como usar icone na janela e no app compilado</a></li>
+              <li><a href="#cli">Como usar <code>grafic-cm empacotar</code></a></li>
+              <li><a href="#plataformas">Como funciona o build por plataforma</a></li>
+              <li><a href="#faq">Respostas para as duvidas mais comuns</a></li>
+            </ul>
+          </div>
+          <aside class="callout">
+            <strong>Resumo rapido</strong>
+            <p>
+              Se o usuario nao informar nenhuma flag de plataforma, o empacotamento
+              segue o sistema operacional atual. Ou seja: Linux gera Linux, Windows
+              gera Windows e macOS gera macOS.
+            </p>
+            <p>
+              Para abrir esta pagina pelo terminal do projeto, use
+              <span class="inline-code">grafic-cm doc</span>.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="primeiros-passos">
+        <div class="section-header">
+          <h2>Primeiros passos</h2>
+          <p>
+            A biblioteca depende de <span class="inline-code">electron</span> no
+            projeto consumidor. Se voce quiser usar o comando de empacotamento,
+            tambem precisa instalar <span class="inline-code">electron-builder</span>.
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <strong>1. Instale a biblioteca</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>dependencias base</span></header>
+              <pre><code>npm install grafic-cm electron</code></pre>
+            </div>
+          </article>
+          <article class="card">
+            <strong>2. Instale o empacotador</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>dependencia de build</span></header>
+              <pre><code>npm install -D electron-builder</code></pre>
+            </div>
+          </article>
+          <article class="card">
+            <strong>3. Crie seu HTML</strong>
+            <p>
+              O campo <span class="inline-code">app</span> aponta para o arquivo
+              HTML que sera aberto na janela principal.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="uso-basico">
+        <div class="section-header">
+          <h2>Uso basico</h2>
+          <p>
+            Este e o fluxo mais comum: importar a funcao
+            <span class="inline-code">janela</span> e passar as opcoes iniciais.
+          </p>
+        </div>
+        <div class="code-block">
+          <header><span>exemplo.js</span><span>ESM</span></header>
+          <pre><code>import grafic, { janela, electron } from 'grafic-cm';
+
+janela({
+  app_nome: 'Minha App',
+  tela_cheia: true,
+  menu_Padrao: false,
+  altura: 600,
+  largura: 800,
+  app: './index.html',
+  icone: './image.png'
+});
+
+const { ipcMain } = electron;
+console.log('App iniciada com Grafic-CM');</code></pre>
+        </div>
+        <div class="callout" style="margin-top: 18px;">
+          <strong>Import default tambem funciona</strong>
+          <div class="code-block">
+            <header><span>exemplo.js</span><span>default export</span></header>
+            <pre><code>import grafic from 'grafic-cm';
+
+grafic.janela({
+  app_nome: 'Minha App',
+  app: './index.html',
+  icone: './image.png'
+});</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="api">
+        <div class="section-header">
+          <h2>API da funcao janela()</h2>
+          <p>
+            Estes sao os campos aceitos hoje pela biblioteca.
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Opcao</th>
+              <th>Tipo</th>
+              <th>Padrao</th>
+              <th>Descricao</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>tela_cheia</code></td>
+              <td>boolean</td>
+              <td><code>false</code></td>
+              <td>Abre a janela em modo fullscreen.</td>
+            </tr>
+            <tr>
+              <td><code>menu_Padrao</code></td>
+              <td>boolean</td>
+              <td><code>true</code></td>
+              <td>Se for <code>false</code>, remove o menu da janela.</td>
+            </tr>
+            <tr>
+              <td><code>altura</code></td>
+              <td>number</td>
+              <td><code>600</code></td>
+              <td>Altura inicial da janela.</td>
+            </tr>
+            <tr>
+              <td><code>largura</code></td>
+              <td>number</td>
+              <td><code>800</code></td>
+              <td>Largura inicial da janela.</td>
+            </tr>
+            <tr>
+              <td><code>app</code></td>
+              <td>string</td>
+              <td>demo interno</td>
+              <td>Caminho para o HTML carregado pela janela.</td>
+            </tr>
+            <tr>
+              <td><code>app_nome</code></td>
+              <td>string</td>
+              <td>sem nome</td>
+              <td>Nome da app e titulo da janela.</td>
+            </tr>
+            <tr>
+              <td><code>icone</code></td>
+              <td>string</td>
+              <td>sem icone</td>
+              <td>Caminho para o icone da janela. Caminhos relativos sao resolvidos a partir de <code>process.cwd()</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" id="icone">
+        <div class="section-header">
+          <h2>Como funciona o icone</h2>
+          <p>
+            O campo <span class="inline-code">icone</span> ja facilita muito o uso,
+            mas vale separar o comportamento em runtime e em build final.
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <strong>Durante a execucao</strong>
+            <p>
+              O caminho informado em <span class="inline-code">icone</span> e usado
+              como icone do <span class="inline-code">BrowserWindow</span>. No macOS,
+              o pacote tambem tenta aplicar o icone no dock.
+            </p>
+          </article>
+          <article class="card">
+            <strong>No executavel compilado</strong>
+            <p>
+              O icone do arquivo final, como <span class="inline-code">.exe</span>,
+              <span class="inline-code">.app</span> ou pacote Linux, ainda depende da
+              configuracao do <span class="inline-code">electron-builder</span> ou da
+              ferramenta de empacotamento que voce usar.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="cli">
+        <div class="section-header">
+          <h2>CLI: grafic-cm empacotar</h2>
+          <p>
+            Ao instalar o pacote, o comando
+            <span class="inline-code">grafic-cm</span> fica disponivel no terminal do projeto.
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <strong>Abrir a documentacao</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>browser padrao</span></header>
+              <pre><code>grafic-cm doc</code></pre>
+            </div>
+            <p>
+              Esse comando abre automaticamente a pagina HTML de documentacao no navegador padrao do sistema.
+            </p>
+          </article>
+          <article class="card">
+            <strong>Comando padrao</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>plataforma atual</span></header>
+              <pre><code>grafic-cm empacotar</code></pre>
+            </div>
+            <p>
+              Sem nenhuma flag, o build segue a plataforma em que o comando esta rodando.
+            </p>
+          </article>
+          <article class="card">
+            <strong>Forcando a plataforma</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>alvos explicitos</span></header>
+              <pre><code>grafic-cm empacotar --win
+grafic-cm empacotar --linux
+grafic-cm empacotar --mac</code></pre>
+            </div>
+          </article>
+          <article class="card">
+            <strong>Passando mais argumentos</strong>
+            <div class="code-block">
+              <header><span>Terminal</span><span>flags do electron-builder</span></header>
+              <pre><code>grafic-cm empacotar --mac --publish never
+grafic-cm empacotar --win portable</code></pre>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="plataformas">
+        <div class="section-header">
+          <h2>Regras por plataforma</h2>
+          <p>
+            O comportamento padrao e simples, mas empacotamento cross-platform no Electron
+            tem limites praticos.
+          </p>
+        </div>
+        <div class="section-grid">
+          <div class="card">
+            <strong>Sem flag de plataforma</strong>
+            <ul class="notes">
+              <li>No Linux, o comando tende a gerar build para Linux.</li>
+              <li>No Windows, o comando tende a gerar build para Windows.</li>
+              <li>No macOS, o comando tende a gerar build para macOS.</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <strong>Limite importante</strong>
+            <p>
+              Gerar build para outro sistema pode exigir ferramentas extras.
+              Exemplo: build de Windows em Linux pode depender de Wine. Build de macOS
+              costuma exigir o proprio macOS para assinatura e empacotamento corretos.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="fluxo-completo">
+        <div class="section-header">
+          <h2>Fluxo completo recomendado</h2>
+          <p>
+            Se voce quiser ir do zero ate o executavel, este e um fluxo seguro.
+          </p>
+        </div>
+        <ol class="steps">
+          <li>Instale <code>grafic-cm</code> e <code>electron</code>.</li>
+          <li>Instale <code>electron-builder</code> como dependencia de desenvolvimento.</li>
+          <li>Crie o seu <code>index.html</code> e o ponto de entrada Electron.</li>
+          <li>Abra a janela com <code>janela({ app: './index.html' })</code>.</li>
+          <li>Configure o build do seu projeto Electron.</li>
+          <li>Rode <code>grafic-cm empacotar</code> ou uma flag especifica como <code>--win</code>.</li>
+        </ol>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="section-header">
+          <h2>Perguntas frequentes</h2>
+        </div>
+        <ul class="faq">
+          <li>
+            <strong>Preciso instalar o pacote globalmente?</strong>
+            Nao. Se preferir, use <code>npx grafic-cm empacotar</code>.
+          </li>
+          <li>
+            <strong>Se eu nao passar <code>app</code>, o que acontece?</strong>
+            A biblioteca carrega um HTML demo simples.
+          </li>
+          <li>
+            <strong>O comando <code>grafic-cm empacotar</code> empacota sozinho sem configuracao?</strong>
+            Ele chama o <code>electron-builder</code> do projeto atual. O comportamento final depende da configuracao do app consumidor.
+          </li>
+          <li>
+            <strong>O icone do executavel final vem so do campo <code>icone</code>?</strong>
+            Nao. Esse campo ajuda no runtime. O executavel final ainda depende da configuracao de build.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="layout">
+      <p>
+        Grafic-CM. Biblioteca Node.js para criar janelas Electron com uma camada simples e direta.
+      </p>
+    </footer>
+  </body>
+</html>

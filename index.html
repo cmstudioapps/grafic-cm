@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafic-CM Studio</title>
+  <link rel="stylesheet" href="./index.css">
+  <style>
+    .top-mode-switcher {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      background: #e5e5ea;
+      padding: 4px;
+      border-radius: 10px;
+      width: fit-content;
+    }
+    .mode-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: #fff;
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .docs-view {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-width: 650px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .docs-view.active { display: flex; }
+    .doc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+    .doc-card h3 { color: var(--accent-primary); margin-bottom: 6px; font-size: 15px; }
+    .doc-card p { color: var(--text-muted); margin-bottom: 10px; }
+    .doc-card ul { padding-left: 20px; color: var(--text-muted); }
+
+    /* Toast Notification */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: #1d1d1f;
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .toast.success { background: #34c759; }
+    .toast.error { background: #ff3b30; }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer"></div>
+
+  <!-- Custom Titlebar (Apple Light) -->
+  <div class="titlebar">
+    <div class="titlebar-title">
+      <span>Grafic-CM Studio</span> • Criador de Apps Desktop
+    </div>
+    <div class="win-controls">
+      <button class="win-btn" id="btnMin" title="Minimizar">
+        <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor"><rect width="10" height="1"/></svg>
+      </button>
+      <button class="win-btn" id="btnMax" title="Maximizar">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect width="9" height="9" x="0.5" y="0.5"/></svg>
+      </button>
+      <button class="win-btn close" id="btnClose" title="Fechar">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M1 1l8 8M9 1l-8 8"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Wizard Container (Duolingo Style) -->
+    <div class="wizard-container">
+      <div class="wizard-header">
+        <div class="top-mode-switcher">
+          <button class="mode-btn active" id="btnModeWizard">🛠️ Construtor</button>
+          <button class="mode-btn" id="btnModeDocs">📖 Documentação & Ajuda</button>
+        </div>
+
+        <div id="wizardHeaderContent">
+          <div class="step-indicator" id="stepIndicator">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+          </div>
+          <h1 class="wizard-title" id="wizardTitle">Selecione a pasta do seu projeto</h1>
+          <p class="wizard-subtitle" id="wizardSubtitle">Escolha o diretório contendo o seu site ou app HTML/JS/Node.</p>
+        </div>
+
+        <div id="docsHeaderContent" style="display: none;">
+          <h1 class="wizard-title">Documentação Oficial</h1>
+          <p class="wizard-subtitle">Tudo o que você precisa saber para criar e empacotar seus apps.</p>
+        </div>
+      </div>
+
+      <div class="wizard-body">
+        <!-- WIZARD STEPS -->
+        <div id="wizardStepsWrapper" style="display: flex; flex-direction: column; flex: 1;">
+          <!-- STEP 1: PROJETO -->
+          <div class="wizard-step active" data-step="1">
+            <div class="card-clean">
+              <div class="form-group">
+                <label class="form-label">Diretório do App</label>
+                <div class="row">
+                  <input type="text" id="inpProjetoPath" class="form-input col" placeholder="Nenhuma pasta selecionada..." readonly>
+                  <button class="btn" id="btnSelecionarPasta">Procurar Pasta</button>
+                  <button class="btn btn-secondary" id="btnTrocarPasta" style="display: none;">Trocar Pasta</button>
+                </div>
+              </div>
+              <div id="projetoStatus" class="status-badge warning">Aguardando seleção de projeto...</div>
+            </div>
+          </div>
+
+          <!-- STEP 2: IDENTIDADE -->
+          <div class="wizard-step" data-step="2">
+            <div class="card-clean">
+              <div class="form-group">
+                <label class="form-label">Nome do Aplicativo</label>
+                <input type="text" id="inpAppName" class="form-input" placeholder="Ex: Meu Sistema Escolar">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Versão Inicial (Ex: 1.0.0)</label>
+                <input type="text" id="inpVersion" class="form-input" value="1.0.0">
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: DESIGN & JANELA -->
+          <div class="wizard-step" data-step="3">
+            <div class="card-clean">
+              <div class="form-group">
+                <label class="form-label">Tema Base da Janela</label>
+                <select id="selTemaApp" class="form-select">
+                  <option value="light">Modo Claro (Light Mode)</option>
+                  <option value="dark">Modo Escuro (Dark Mode)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estilo da Barra de Título</label>
+                <select id="selEstiloJanela" class="form-select">
+                  <option value="windows">Padrão Windows (Botões à Direita)</option>
+                  <option value="macos">Estilo macOS (Bolinhas Coloridas à Esquerda)</option>
+                  <option value="linux">Linux / Minimalista</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado Inicial da Janela</label>
+                <select id="selEstadoJanela" class="form-select">
+                  <option value="normal">Janela Normal</option>
+                  <option value="maximized">Maximizada em Tela Cheia</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tipo de Animação de Abertura (Splash Screen)</label>
+                <select id="selTipoAnimacao" class="form-select">
+                  <option value="cinematic">Cinemático (Aurora Glow + Barra)</option>
+                  <option value="fade">Fade In Suave</option>
+                  <option value="zoom">Zoom In Elegante</option>
+                  <option value="slide">Slide Up (Deslizar para cima)</option>
+                  <option value="nenhuma">Nenhuma animação</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                  <input type="checkbox" id="chkBotaoTema" style="width:16px; height:16px; accent-color: #0071e3;" checked>
+                  Adicionar Botão de Alternar Tema (☀️/🌙) na Barra de Título
+                </label>
+              </div>
+              <div class="row">
+                <div class="form-group col">
+                  <label class="form-label">Cor Fechar</label>
+                  <input type="color" id="colFechar" class="form-input" value="#ff3b30" style="height: 38px; padding: 2px; cursor: pointer;">
+                </div>
+                <div class="form-group col">
+                  <label class="form-label">Cor Minimizar</label>
+                  <input type="color" id="colMin" class="form-input" value="#ff9500" style="height: 38px; padding: 2px; cursor: pointer;">
+                </div>
+                <div class="form-group col">
+                  <label class="form-label">Cor Maximizar</label>
+                  <input type="color" id="colMax" class="form-input" value="#34c759" style="height: 38px; padding: 2px; cursor: pointer;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: ÍCONE -->
+          <div class="wizard-step" data-step="4">
+            <div class="card-clean">
+              <div class="form-group">
+                <label class="form-label">Ícone do Aplicativo (.png ou .ico)</label>
+                <div class="row">
+                  <input type="text" id="inpIconPath" class="form-input col" placeholder="Usar ícone padrão do sistema" readonly>
+                  <button class="btn btn-secondary" id="btnSelecionarIcone">Escolher Ícone</button>
+                </div>
+              </div>
+              <p style="font-size: 13px; color: var(--text-muted);">O ícone será aplicado automaticamente no executável e na barra de tarefas do sistema.</p>
+            </div>
+          </div>
+
+          <!-- STEP 5: AÇÕES & REVISÃO -->
+          <div class="wizard-step" data-step="5">
+            <div class="card-clean" style="align-items: center; text-align: center; padding: 30px;">
+              <div style="font-size: 40px; margin-bottom: 8px;">🚀</div>
+              <h2 style="font-size: 20px; font-weight: 700;">Tudo pronto para decolar!</h2>
+              <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">Teste seu app instantaneamente ou gere o instalador nativo.</p>
+              
+              <div class="form-group" style="text-align: left; width: 100%; max-width: 320px; margin-bottom: 12px;">
+                <label class="form-label">Arquitetura do Executável</label>
+                <select id="selArch" class="form-select">
+                  <option value="x64">64-bit (x64) - Padrão Moderno</option>
+                  <option value="ia32">32-bit (x86 / ia32)</option>
+                  <option value="both">Ambas (Gerar x64 e x86)</option>
+                </select>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px;">
+                <button class="btn" id="btnPreview">▶ Testar App (Prévia)</button>
+                <button class="btn btn-success" id="btnBuildWin">Gerar .exe (Windows)</button>
+                <button class="btn btn-success" id="btnBuildLinux">Gerar .deb (Linux)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOCS VIEW -->
+        <div class="docs-view" id="docsView">
+          <div class="doc-card">
+            <h3>📁 Estrutura do Projeto</h3>
+            <p>Seu projeto deve conter pelo menos um arquivo <b>index.html</b> na raiz. Se o app precisar de banco de dados ou backend, coloque a pasta <b>api/server.js</b> (Express).</p>
+          </div>
+          <div class="doc-card">
+            <h3>🎨 Estilos e Janela Customizada</h3>
+            <p>O Grafic-CM injeta automaticamente uma barra de título moderna sem bordas nativas. O conteúdo do seu app é encapsulado em um viewport isolado (sem barra de rolagem na janela).</p>
+          </div>
+          <div class="doc-card">
+            <h3>🚀 Como Empacotar (.exe e .deb)</h3>
+            <p>Basta seguir os passos no Construtor, preencher o nome e versão, e clicar em gerar. O Studio cria um instalador standalone onde o usuário final não precisa ter o Node.js ou Electron instalado.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer" id="wizardFooter">
+        <button class="btn btn-secondary" id="btnAnterior" style="visibility: hidden;">Voltar</button>
+        <button class="btn" id="btnProximo">Continuar</button>
+      </div>
+    </div>
+
+    <!-- Sidebar: Console e Logs -->
+    <div class="sidebar-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; font-weight: 600;">Logs do Studio</span>
+        <button class="btn btn-secondary" id="btnClearLogs" style="padding: 4px 10px; font-size: 11px;">Limpar</button>
+      </div>
+      <div class="console-box" id="consoleLogs">Grafic-CM Studio v2.0 Light inicializado.
+Aguardando ações...</div>
+    </div>
+  </div>
+
+  <script>
+    // Toast Notification helper
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Window controls
+    document.getElementById('btnMin').onclick = () => window.graficAPI.minimizar();
+    document.getElementById('btnMax').onclick = () => window.graficAPI.maximizar();
+    document.getElementById('btnClose').onclick = () => window.graficAPI.fechar();
+
+    // Mode Switcher (Wizard vs Docs)
+    const btnModeWizard = document.getElementById('btnModeWizard');
+    const btnModeDocs = document.getElementById('btnModeDocs');
+    const wizardHeaderContent = document.getElementById('wizardHeaderContent');
+    const docsHeaderContent = document.getElementById('docsHeaderContent');
+    const wizardStepsWrapper = document.getElementById('wizardStepsWrapper');
+    const docsView = document.getElementById('docsView');
+    const wizardFooter = document.getElementById('wizardFooter');
+
+    btnModeWizard.onclick = () => {
+      btnModeWizard.classList.add('active');
+      btnModeDocs.classList.remove('active');
+      wizardHeaderContent.style.display = 'block';
+      docsHeaderContent.style.display = 'none';
+      wizardStepsWrapper.style.display = 'flex';
+      docsView.classList.remove('active');
+      wizardFooter.style.display = 'flex';
+    };
+
+    btnModeDocs.onclick = () => {
+      btnModeDocs.classList.add('active');
+      btnModeWizard.classList.remove('active');
+      wizardHeaderContent.style.display = 'none';
+      docsHeaderContent.style.display = 'block';
+      wizardStepsWrapper.style.display = 'none';
+      docsView.classList.add('active');
+      wizardFooter.style.display = 'none';
+    };
+
+    let currentStep = 1;
+    const totalSteps = 5;
+    let projetoAtual = null;
+
+    const steps = document.querySelectorAll('.wizard-step');
+    const dots = document.querySelectorAll('.step-dot');
+    const wizardTitle = document.getElementById('wizardTitle');
+    const wizardSubtitle = document.getElementById('wizardSubtitle');
+    const btnAnterior = document.getElementById('btnAnterior');
+    const btnProximo = document.getElementById('btnProximo');
+
+    const stepTitles = [
+      ["Selecione a pasta do seu projeto", "Escolha o diretório contendo o seu site ou app HTML/JS/Node."],
+      ["Identidade do Aplicativo", "Defina o nome que aparecerá na janela e a versão do sistema."],
+      ["Design & Aparência da Janela", "Personalize o tema, controles, cores e animações de abertura."],
+      ["Ícone do Aplicativo", "Adicione uma identidade visual profissional ao executável."],
+      ["Hora de Testar ou Empacotar", "Visualize em tempo real ou gere os instaladores finais."]
+    ];
+
+    function updateWizard() {
+      steps.forEach(s => s.classList.remove('active'));
+      document.querySelector(`.wizard-step[data-step="${currentStep}"]`).classList.add('active');
+
+      dots.forEach((d, idx) => {
+        d.classList.toggle('active', idx < currentStep);
+      });
+
+      wizardTitle.textContent = stepTitles[currentStep - 1][0];
+      wizardSubtitle.textContent = stepTitles[currentStep - 1][1];
+
+      btnAnterior.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+      btnProximo.textContent = currentStep === totalSteps ? 'Finalizar' : 'Continuar';
+      if (currentStep === totalSteps) {
+        btnProximo.style.display = 'none';
+      } else {
+        btnProximo.style.display = 'inline-flex';
+        if (currentStep === 1 && !projetoAtual) {
+          btnProximo.disabled = true;
+        } else {
+          btnProximo.disabled = false;
+        }
+      }
+    }
+
+    updateWizard();
+
+    btnProximo.onclick = () => {
+      if (currentStep === 1 && !projetoAtual) {
+        showToast('Selecione uma pasta de projeto válida primeiro!', 'error');
+        return;
+      }
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateWizard();
+      }
+    };
+
+    btnAnterior.onclick = () => {
+      if (currentStep > 1) {
+        currentStep--;
+        if (currentStep === totalSteps) btnProximo.style.display = 'inline-flex';
+        updateWizard();
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON' && currentStep < totalSteps && wizardStepsWrapper.style.display !== 'none') {
+        btnProximo.click();
+      }
+    });
+
+    const consoleLogs = document.getElementById('consoleLogs');
+    function logar(texto) {
+      consoleLogs.textContent += texto;
+      consoleLogs.scrollTop = consoleLogs.scrollHeight;
+    }
+
+    window.graficAPI.onLog((texto) => logar(texto));
+    document.getElementById('btnClearLogs').onclick = () => consoleLogs.textContent = '';
+
+    // Selecionar Pasta
+    document.getElementById('btnSelecionarPasta').onclick = async () => {
+      const pasta = await window.graficAPI.selecionarPasta();
+      if (!pasta) return;
+
+      document.getElementById('inpProjetoPath').value = pasta;
+      logar(`\n[Studio] Analisando projeto em: ${pasta}\n`);
+
+      const res = await window.graficAPI.analisarProjeto(pasta);
+      if (res.success) {
+        projetoAtual = res.data;
+        document.getElementById('inpAppName').value = projetoAtual.nomeSugerido;
+        document.getElementById('inpVersion').value = projetoAtual.versaoSugerida;
+        if (projetoAtual.iconePath) {
+          document.getElementById('inpIconPath').value = projetoAtual.iconePath;
+        }
+
+        const badge = document.getElementById('projetoStatus');
+        badge.className = 'status-badge';
+        badge.textContent = `Projeto Válido (${projetoAtual.indexHtml ? 'HTML OK' : 'Sem HTML'})`;
+        logar(`[Studio] Análise concluída: ${projetoAtual.nomeSugerido}\n`);
+        showToast('Projeto carregado com sucesso!');
+        updateWizard();
+      } else {
+        logar(`[Erro] ${res.error}\n`);
+        showToast(res.error, 'error');
+      }
+    };
+
+    // Selecionar Ícone
+    document.getElementById('btnSelecionarIcone').onclick = async () => {
+      const icone = await window.graficAPI.selecionarIcone();
+      if (icone) {
+        document.getElementById('inpIconPath').value = icone;
+        logar(`[Studio] Ícone selecionado: ${icone}\n`);
+        showToast('Ícone personalizado aplicado!');
+      }
+    };
+
+    function coletarConfiguracoes() {
+      return {
+        projetoPath: projetoAtual.caminhoAbsoluto,
+        indexHtml: projetoAtual.indexHtml,
+        apiEntry: projetoAtual.apiEntry,
+        appNome: document.getElementById('inpAppName').value,
+        versao: document.getElementById('inpVersion').value,
+        iconePath: document.getElementById('inpIconPath').value,
+        temaApp: document.getElementById('selTemaApp').value,
+        estiloJanela: document.getElementById('selEstiloJanela').value,
+        estadoJanela: document.getElementById('selEstadoJanela').value,
+        tipoAnimacao: document.getElementById('selTipoAnimacao').value,
+        botaoTema: document.getElementById('chkBotaoTema').checked,
+        corFechar: document.getElementById('colFechar').value,
+        corMinimizar: document.getElementById('colMin').value,
+        corMaximizar: document.getElementById('colMax').value
+      };
+    }
+
+    // Testar Preview
+    document.getElementById('btnPreview').onclick = async () => {
+      if (!projetoAtual) return alert('Selecione uma pasta!');
+      const btn = document.getElementById('btnPreview');
+      btn.disabled = true;
+      btn.textContent = 'Iniciando Prévia...';
+
+      logar(`[Studio] Iniciando prévia com tema e animação...\n`);
+      await window.graficAPI.iniciarPreview(coletarConfiguracoes());
+
+      btn.disabled = false;
+      btn.textContent = '▶ Testar App (Prévia)';
+      showToast('Prévia aberta com sucesso!');
+    };
+
+    // Empacotar Windows
+    document.getElementById('btnBuildWin').onclick = async () => {
+      if (!projetoAtual) return alert('Selecione uma pasta!');
+      const btn = document.getElementById('btnBuildWin');
+      btn.disabled = true;
+      btn.textContent = 'Gerando .exe...';
+
+      logar(`[Studio] Gerando .exe (Windows)...\n`);
+      const cfg = coletarConfiguracoes();
+      cfg.plataforma = 'win';
+      const res = await window.graficAPI.empacotar(cfg);
+
+      btn.disabled = false;
+      btn.textContent = 'Gerar .exe (Windows)';
+      if (res.success) {
+        showToast(`Sucesso! Salvo em: ${res.outputPath}`);
+      } else {
+        showToast('Erro ao gerar instalador. Verifique os logs.', 'error');
+      }
+    };
+
+    // Empacotar Linux
+    document.getElementById('btnBuildLinux').onclick = async () => {
+      if (!projetoAtual) return alert('Selecione uma pasta!');
+      const btn = document.getElementById('btnBuildLinux');
+      btn.disabled = true;
+      btn.textContent = 'Gerando .deb...';
+
+      logar(`[Studio] Gerando .deb (Linux)...\n`);
+      const cfg = coletarConfiguracoes();
+      cfg.plataforma = 'linux';
+      const res = await window.graficAPI.empacotar(cfg);
+
+      btn.disabled = false;
+      btn.textContent = 'Gerar .deb (Linux)';
+      if (res.success) {
+        showToast(`Sucesso! Salvo em: ${res.outputPath}`);
+      } else {
+        showToast('Erro ao gerar pacote. Verifique os logs.', 'error');
+      }
+    };
+  </script>
+</body>
+</html>
