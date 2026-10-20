@@ -1,5 +1,7 @@
 # Grafic-CM Studio v2.0
 
+> ⚠️ **IMPORTANTE:** Antes de utilizar ou contribuir com o projeto, **leia o arquivo [projeto.md](./projeto.md)**. Ele detalha o propósito fundamental do Grafic-CM, as funcionalidades atuais, o roadmap e as **preocupações técnicas cruciais** (como gerenciamento de servidores backend, persistência de dados locais via `userData` e independência de dependências para o usuário final).
+
 O **Grafic-CM Studio** é um aplicativo desktop moderno para Linux e Windows desenvolvido para transformar projetos web (HTML/JS/Node) em aplicativos desktop nativos prontos para distribuição (`.exe` e `.deb`), sem complicação e sem exigir conhecimentos avançados de Electron.
 
 ---
