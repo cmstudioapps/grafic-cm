@@ -39,14 +39,17 @@ Ao transformar projetos web em aplicativos desktop empacotados, existem três po
 - **O desafio:** Muitas aplicações web modernas rodam com um backend em Node.js (Express, Fastify, etc.) que escuta em uma porta específica (ex: `localhost:3000`). Em um app desktop empacotado, o processo do servidor precisa ser iniciado corretamente junto com a janela do Electron e encerrado com segurança ao fechar o app.
 - **Como o Grafic-CM lida hoje:** O scanner detecta se há uma entrada de API (`apiEntry` / `server.js`) na pasta do usuário e o motor de build injeta automaticamente um script principal (`electron-main.cjs`) que faz o `fork` do servidor em segundo plano, injetando variáveis de ambiente essenciais (`PORT` e `ETE_USER_DATA_PATH`).
 
-### 2. O Grafic-CM sabe que o app do usuário salva coisas localmente em pastas?
-- **O desafio:** Aplicativos desktop frequentemente salvam arquivos localmente (bancos de dados SQLite, arquivos JSON de configuração, imagens enviadas por upload, logs). Se esses arquivos forem salvos dentro da pasta de instalação do aplicativo, **eles serão apagados ou sobrescritos** toda vez que o usuário instalar uma nova versão (atualização).
-- **Como o Grafic-CM lida hoje:** O motor injeta no script principal o caminho seguro `app.getPath('userData')` (através da variável de ambiente `ETE_USER_DATA_PATH`), que aponta para a pasta protegida e persistente do sistema operacional do usuário (fora do diretório de instalação do app). 
-- **Ponto de atenção:** Os códigos desenvolvidos pelos usuários precisam obrigatoriamente salvar bancos de dados e arquivos locais utilizando o diretório `userData` fornecido, e não caminhos relativos na raiz do projeto.
+### 2. Como o Grafic-CM lida com salvamento de dados locais (Sem engessar o código do usuário)?
+- **A visão correta:** O usuário deve poder programar exatamente do jeito que quiser, usando caminhos relativos normais ou bibliotecas padrão (como SQLite, JSON, etc.), sem ser obrigado a alterar seu código para usar variáveis ou caminhos específicos do Grafic-CM. 
+- **A solução transparente (Working Directory):** Para que o usuário não precise mudar nada no código dele, o Grafic-CM configura o diretório de trabalho (`cwd`) do processo do servidor backend (`server.js`) para apontar automaticamente para a pasta persistente do usuário (`app.getPath('userData')`). Assim, qualquer arquivo ou banco de dados salvo com caminho relativo vai parar na pasta segura do sistema operacional, **sem exigir nenhuma alteração no código do usuário.**
 
-### 3. O usuário final precisa instalar dependências (como o Electron) para rodar o app?
-- **O desafio:** Usuários finais comuns de softwares desktop não possuem Node.js, npm ou Electron instalados em suas máquinas e não devem se preocupar com isso. O executável entregue precisa ser completamente autossuficiente (*standalone*).
-- **Como o Grafic-CM lida hoje:** Através do `electron-builder`, o Grafic-CM empacota o motor do Chromium (Electron), o interpretador Node.js e todas as dependências do projeto web em um único instalador autocontido (`.exe` ou `.deb`). O usuário final apenas executa o instalador e abre o aplicativo como qualquer software nativo, sem precisar instalar absolutamente nada em separado.
+### 3. Como o Grafic-CM lida com dependências de terceiros no projeto do usuário?
+- **A filosofia:** O Grafic-CM não tenta adivinhar nem pré-empacotar todas as bibliotecas do mundo (como SQLite, MySQL, etc.). O Studio vem apenas com o essencial (Electron e o esqueleto de execução).
+- **Como funciona:** O Grafic-CM lê o `package.json` do projeto do usuário, preserva as dependências declaradas por ele e assegura que o ambiente de build (`electron-builder`) processe e inclua corretamente os módulos necessários (através de resolução de pacotes e symlinks/instalação interna), permitindo total liberdade criativa ao desenvolvedor.
+
+### 4. O usuário final precisa instalar dependências (como o Electron) para rodar o app?
+- **O desafio:** Usuários finais comuns de softwares desktop não possuem Node.js, npm ou Electron instalados em suas máquinas. O executável entregue precisa ser totalmente autossuficiente (*standalone*).
+- **Como o Grafic-CM lida hoje:** Através do `electron-builder`, o Grafic-CM empacota o motor do Chromium, o interpretador Node.js e todas as dependências do projeto em um único instalador autocontido (`.exe` ou `.deb`). O usuário final apenas executa o instalador e usa o app nativamente.
 
 ---
 
